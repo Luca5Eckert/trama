@@ -12,6 +12,7 @@ import (
 type Handler struct{ service application.Service }
 
 func NewHandler(service application.Service) *Handler { return &Handler{service} }
+
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /v1/users", h.create)
 	mux.HandleFunc("GET /v1/users/{id}", h.getByID)

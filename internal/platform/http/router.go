@@ -11,12 +11,15 @@ type RouteRegistrar func(*http.ServeMux)
 
 func NewRouter(logger *slog.Logger, registrars ...RouteRegistrar) http.Handler {
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
+
 	for _, register := range registrars {
 		register(mux)
 	}
+	
 	return recovery(logging(logger, mux))
 }
 

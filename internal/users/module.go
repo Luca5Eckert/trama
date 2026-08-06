@@ -12,8 +12,12 @@ type Module struct{ handler *transport.Handler }
 
 func NewModule() Module {
 	repository := memory.NewUserRepository()
+
 	service := application.NewService(repository)
+
 	return Module{handler: transport.NewHandler(service)}
 }
 
-func (m Module) RegisterRoutes(mux *http.ServeMux) { m.handler.RegisterRoutes(mux) }
+func (m Module) RegisterRoutes(mux *http.ServeMux) { 
+	m.handler.RegisterRoutes(mux) 
+}

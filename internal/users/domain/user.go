@@ -16,6 +16,7 @@ type User struct {
 
 func NewUser(id, name string, now time.Time) (User, error) {
 	name = strings.TrimSpace(name)
+	
 	if name == "" {
 		return User{}, ErrInvalidName
 	}
