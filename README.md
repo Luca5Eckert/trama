@@ -8,7 +8,16 @@ Base de API Go organizada como monólito modular. Cada módulo concentra seu flu
 go run ./cmd/api
 ```
 
-Variáveis opcionais: `HTTP_ADDRESS` (padrão `:8080`) e `LOG_LEVEL` (padrão `info`).
+Inicie o PostgreSQL local:
+
+```bash
+docker compose up -d
+```
+
+Depois execute a API. O schema é criado automaticamente na inicialização.
+
+Variáveis opcionais: `HTTP_ADDRESS` (padrão `:8080`), `LOG_LEVEL` (padrão `info`) e
+`DATABASE_URL` (padrão `postgres://postgres:postgres@localhost:5432/trama?sslmode=disable`).
 
 ## Fluxo de referência: users
 
@@ -18,4 +27,4 @@ Variáveis opcionais: `HTTP_ADDRESS` (padrão `:8080`) e `LOG_LEVEL` (padrão `i
 - `GET /v1/users/{id}` consulta um usuário.
 - `GET /health` verifica a saúde do processo.
 
-O repositório atual é em memória. Para incluir Postgres, adicione um adapter em `internal/users/infrastructure/postgres` que implemente `domain.Repository` e injete-o em `users.NewModule()`.
+Os usuários são persistidos em PostgreSQL. O adapter em memória permanece disponível somente para testes unitários.

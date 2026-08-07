@@ -4,15 +4,13 @@ import (
 	"net/http"
 
 	"github.com/Luca5Eckert/trama/internal/users/application"
-	"github.com/Luca5Eckert/trama/internal/users/infrastructure/memory"
+	"github.com/Luca5Eckert/trama/internal/users/domain"
 	transport "github.com/Luca5Eckert/trama/internal/users/transport/http"
 )
 
 type Module struct{ handler *transport.Handler }
 
-func NewModule() Module {
-	repository := memory.NewUserRepository()
-
+func NewModule(repository domain.Repository) Module {
 	service := application.NewService(repository)
 
 	return Module{handler: transport.NewHandler(service)}

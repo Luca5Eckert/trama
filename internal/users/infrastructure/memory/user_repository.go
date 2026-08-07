@@ -2,12 +2,9 @@ package memory
 
 import (
 	"context"
-	"errors"
 	"github.com/Luca5Eckert/trama/internal/users/domain"
 	"sync"
 )
-
-var ErrNotFound = errors.New("user not found")
 
 type UserRepository struct {
 	mutex    sync.RWMutex
@@ -33,7 +30,7 @@ func (repo *UserRepository) GetByID(_ context.Context, id string) (domain.User, 
 	user, ok := repo.users[id]
 
 	if !ok {
-		return domain.User{}, ErrNotFound
+		return domain.User{}, domain.ErrNotFound
 	}
 	
 	return user, nil

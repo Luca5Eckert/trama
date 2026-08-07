@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/Luca5Eckert/trama/internal/users/application"
 	"github.com/Luca5Eckert/trama/internal/users/domain"
-	"github.com/Luca5Eckert/trama/internal/users/infrastructure/memory"
 	"net/http"
 )
 
@@ -57,7 +56,7 @@ func respondDomainError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, domain.ErrInvalidName):
 		respondError(w, http.StatusUnprocessableEntity, err.Error())
-	case errors.Is(err, memory.ErrNotFound):
+	case errors.Is(err, domain.ErrNotFound):
 		respondError(w, http.StatusNotFound, err.Error())
 	default:
 		respondError(w, http.StatusInternalServerError, "internal server error")
