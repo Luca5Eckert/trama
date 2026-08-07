@@ -2,9 +2,8 @@ package application
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"github.com/Luca5Eckert/trama/internal/users/domain"
+	"github.com/Luca5Eckert/trama/internal/users/infrastructure/utils"
 	"time"
 )
 
@@ -14,12 +13,12 @@ type Service struct{
 
 type CreateInput struct{ Name string }
 
-func NewService(repository domain.Repository) Service {
-	return Service{repository} 
+func NewService(repository domain.Repository) *Service {
+	return &Service{repository} 
 }
 
-func (s Service) Create(ctx context.Context, input CreateInput) (domain.User, error) {
-	user, err := domain.NewUser(newID(), input.Name, time.Now())
+func (s *Service) Create(ctx context.Context, input CreateInput) (domain.User, error) {
+	user, err := domain.NewUser(utils.GenerateUUIDId(), input.Name, time.Now())
 
 	if err != nil {
 		return domain.User{}, err
@@ -31,14 +30,11 @@ func (s Service) Create(ctx context.Context, input CreateInput) (domain.User, er
 	return user, nil
 }
 
-func (s Service) GetByID(ctx context.Context, id string) (domain.User, error) {
+func (s *Service) GetByID(ctx context.Context, id string) (domain.User, error) {
 	return s.repository.GetByID(ctx, id)
 }
 
-func newID() string {
-	bytes := make([]byte, 16)
-	if _, err := rand.Read(bytes); err != nil {
-		panic(err)
-	}
-	return hex.EncodeToString(bytes)
+func (s *Service) GetAll(ctx context.Context) ([]domain.User, error) {
+	return s.repository.GetAll(ctx)
 }
+

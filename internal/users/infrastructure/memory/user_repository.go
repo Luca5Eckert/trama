@@ -38,3 +38,14 @@ func (repo *UserRepository) GetByID(_ context.Context, id string) (domain.User, 
 	
 	return user, nil
 }
+
+func (repo *UserRepository) GetAll(_ context.Context) ([]domain.User, error) {
+	repo.mutex.RLock()
+	defer repo.mutex.RUnlock()
+
+	users := make([]domain.User, 0, len(repo.users))
+	for _, user := range repo.users {
+		users = append(users, user)
+	}
+	return users, nil
+}	

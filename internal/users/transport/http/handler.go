@@ -9,13 +9,14 @@ import (
 	"net/http"
 )
 
-type Handler struct{ service application.Service }
+type Handler struct{ service *application.Service }
 
-func NewHandler(service application.Service) *Handler { return &Handler{service} }
+func NewHandler(service *application.Service) *Handler { return &Handler{service} }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /v1/users", h.create)
 	mux.HandleFunc("GET /v1/users/{id}", h.getByID)
+	mux.HandleFunc("GET /v1/users", h.getAll)
 }
 func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	var input application.CreateInput
@@ -30,6 +31,7 @@ func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
 	}
 	respondJSON(w, http.StatusCreated, user)
 }
+
 func (h *Handler) getByID(w http.ResponseWriter, r *http.Request) {
 	user, err := h.service.GetByID(r.Context(), r.PathValue("id"))
 	if err != nil {
@@ -38,6 +40,19 @@ func (h *Handler) getByID(w http.ResponseWriter, r *http.Request) {
 	}
 	respondJSON(w, http.StatusOK, user)
 }
+
+func (h *Handler) getAll(w http.ResponseWriter, r *http.Request) {
+	user, err := h.service.GetAll(r.Context())
+
+	if err != nil {
+		respondDomainError(w, err)
+		return
+	}
+
+	respondJSON(w, http.StatusOK, user)
+}
+
+
 func respondDomainError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, domain.ErrInvalidName):
