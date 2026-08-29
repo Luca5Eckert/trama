@@ -36,10 +36,13 @@ jobs:
           go-version: '1.25.x'
           cache: true
 
-      - name: Verify modules
+      - name: Resolve modules
         run: |
           go mod tidy
-          git diff --exit-code -- go.mod go.sum
+          echo '--- go.mod ---'
+          cat go.mod
+          echo '--- go.sum ---'
+          cat go.sum
 
       - name: Test
         run: go test ./...

@@ -12,6 +12,7 @@ import (
 	"github.com/Luca5Eckert/trama/internal/platform/config"
 	"github.com/Luca5Eckert/trama/internal/platform/database"
 	platformhttp "github.com/Luca5Eckert/trama/internal/platform/http"
+	"github.com/Luca5Eckert/trama/internal/production"
 	"github.com/Luca5Eckert/trama/internal/users"
 )
 
@@ -35,7 +36,8 @@ func main() {
 	}
 
 	usersModule := users.NewModule(pool)
-	router := platformhttp.NewRouter(logger, usersModule.RegisterRoutes)
+	productionModule := production.NewModule(pool)
+	router := platformhttp.NewRouter(logger, usersModule.RegisterRoutes, productionModule.RegisterRoutes)
 	server := &http.Server{Addr: cfg.HTTPAddress, Handler: router, ReadHeaderTimeout: 5 * time.Second}
 
 	go func() {
