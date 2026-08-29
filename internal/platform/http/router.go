@@ -9,6 +9,15 @@ import (
 
 type RouteRegistrar func(*http.ServeMux)
 
+type errorBody struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+type errorResponse struct {
+	Error errorBody `json:"error"`
+}
+
 func NewRouter(logger *slog.Logger, registrars ...RouteRegistrar) http.Handler {
 	mux := http.NewServeMux()
 
@@ -19,7 +28,7 @@ func NewRouter(logger *slog.Logger, registrars ...RouteRegistrar) http.Handler {
 	for _, register := range registrars {
 		register(mux)
 	}
-	
+
 	return recovery(logging(logger, mux))
 }
 
@@ -41,7 +50,9 @@ func recovery(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if recover() != nil {
-				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal server error"})
+				writeJSON(w, http.StatusInternalServerError, errorResponse{
+					Error: errorBody{Code: "internal_error", Message: "internal server error"},
+				})
 			}
 		}()
 		next.ServeHTTP(w, r)
