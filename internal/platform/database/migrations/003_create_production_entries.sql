@@ -29,12 +29,6 @@ CREATE TABLE production_size_runs (
     UNIQUE (color_batch_id, position)
 );
 
-CREATE INDEX production_color_batches_entry_id_idx
-    ON production_color_batches (entry_id);
-
-CREATE INDEX production_size_runs_color_batch_id_idx
-    ON production_size_runs (color_batch_id);
-
 ---- create above / drop below ----
 
 DROP TABLE IF EXISTS production_size_runs;
