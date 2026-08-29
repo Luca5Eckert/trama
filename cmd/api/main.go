@@ -13,7 +13,6 @@ import (
 	"github.com/Luca5Eckert/trama/internal/platform/database"
 	platformhttp "github.com/Luca5Eckert/trama/internal/platform/http"
 	"github.com/Luca5Eckert/trama/internal/users"
-	userpostgres "github.com/Luca5Eckert/trama/internal/users/infrastructure/postgres"
 )
 
 func main() {
@@ -22,6 +21,7 @@ func main() {
 
 	startupCtx, startupCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer startupCancel()
+
 	pool, err := database.Open(startupCtx, cfg.DatabaseURL)
 	if err != nil {
 		logger.Error("database initialization failed", "error", err)
@@ -29,7 +29,12 @@ func main() {
 	}
 	defer pool.Close()
 
-	usersModule := users.NewModule(userpostgres.NewUserRepository(pool))
+	if err := database.Migrate(startupCtx, pool); err != nil {
+		logger.Error("database migration failed", "error", err)
+		os.Exit(1)
+	}
+
+	usersModule := users.NewModule(pool)
 	router := platformhttp.NewRouter(logger, usersModule.RegisterRoutes)
 	server := &http.Server{Addr: cfg.HTTPAddress, Handler: router, ReadHeaderTimeout: 5 * time.Second}
 
