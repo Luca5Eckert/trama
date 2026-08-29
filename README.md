@@ -25,9 +25,9 @@ Presentation -> Application -> Domain <- Infrastructure
 - `infrastructure`: implementações das portas, como PostgreSQL, memória, clock e geração de ID;
 - `module.go`: composition root e único ponto do módulo autorizado a conhecer as implementações concretas usadas no wiring.
 
-O teste em `internal/users/architecture` protege as importações proibidas entre camadas.
+Os testes em `internal/<modulo>/architecture` protegem as importações proibidas entre camadas.
 
-## Fluxo de referência: users
+## Users
 
 - `POST /v1/users` com `{"name":"Ada Lovelace"}` cria um usuário;
 - `GET /v1/users/{id}` consulta um usuário;
@@ -36,17 +36,43 @@ O teste em `internal/users/architecture` protege as importações proibidas entr
 
 A presentation usa DTOs próprios. Modelos de domínio não possuem tags JSON e não são serializados diretamente.
 
-Erros HTTP seguem envelope estável:
+## Production — sequência de tamanhos
+
+A sequência de tamanhos é uma configuração singleton do processo produtivo:
+
+- `GET /v1/production/size-sequence` consulta a configuração vigente;
+- `PUT /v1/production/size-sequence` substitui a configuração inteira.
+
+A ordem é definida exclusivamente por `position`; nomes não são ordenados alfabeticamente e nenhuma sequência como `P -> M -> G` é assumida pelo código.
+
+Exemplo:
+
+```json
+{
+  "items": [
+    {"name": "P", "position": 10},
+    {"name": "M", "position": 20}
+  ]
+}
+```
+
+O `PUT` é idempotente: repetir o mesmo estado lógico não duplica itens nem altera `updatedAt`.
+
+## Erros HTTP
+
+As bordas HTTP usam envelope estável:
 
 ```json
 {
   "error": {
-    "code": "invalid_name",
-    "message": "name is required"
+    "code": "invalid_size_sequence",
+    "message": "invalid size sequence"
   }
 }
 ```
 
 ## Banco de dados
 
-`database.Open` cuida apenas da conexão e do lifecycle do pool. `database.Migrate` aplica o schema bootstrap atual de forma explícita. Antes de adicionar tabelas do módulo `production`, o projeto deve adotar migrations versionadas; não será criado um framework próprio de migrations para isso.
+`database.Open` cuida somente da conexão e do lifecycle do pool. `database.Migrate` executa migrations SQL versionadas e embutidas em `internal/platform/database/migrations` usando Tern.
+
+A tabela de controle é `public.trama_schema_version`. O schema de `production` é criado por migration; SQL e transações de persistência permanecem escondidos nos adapters PostgreSQL.

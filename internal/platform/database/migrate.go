@@ -2,21 +2,38 @@ package database
 
 import (
 	"context"
+	"embed"
 	"fmt"
+	"io/fs"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/tern/v2/migrate"
 )
 
-const bootstrapSchema = `
-CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL CHECK (length(trim(name)) > 0),
-    created_at TIMESTAMPTZ NOT NULL
-);`
+//go:embed migrations/*.sql
+var migrationFiles embed.FS
 
 func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
-	if _, err := pool.Exec(ctx, bootstrapSchema); err != nil {
-		return fmt.Errorf("apply bootstrap schema: %w", err)
+	migrationFS, err := fs.Sub(migrationFiles, "migrations")
+	if err != nil {
+		return fmt.Errorf("open migration filesystem: %w", err)
+	}
+
+	connection, err := pool.Acquire(ctx)
+	if err != nil {
+		return fmt.Errorf("acquire migration connection: %w", err)
+	}
+	defer connection.Release()
+
+	migrator, err := migrate.NewMigrator(ctx, connection.Conn(), "public.trama_schema_version")
+	if err != nil {
+		return fmt.Errorf("initialize migrator: %w", err)
+	}
+	if err := migrator.LoadMigrations(migrationFS); err != nil {
+		return fmt.Errorf("load migrations: %w", err)
+	}
+	if err := migrator.Migrate(ctx); err != nil {
+		return fmt.Errorf("apply migrations: %w", err)
 	}
 	return nil
 }
