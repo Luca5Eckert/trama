@@ -17,3 +17,15 @@ func IsInvalidSizeSequence(err error) bool {
 func IsSizeSequenceNotConfigured(err error) bool {
 	return errors.Is(err, domain.ErrSizeSequenceNotConfigured)
 }
+
+func IsColorsRequired(err error) bool {
+	return errors.Is(err, domain.ErrColorsRequired)
+}
+
+func IsInvalidColor(err error) bool {
+	return errors.Is(err, domain.ErrInvalidColor)
+}
+
+func IsDuplicateColor(err error) bool {
+	return errors.Is(err, domain.ErrDuplicateColor)
+}

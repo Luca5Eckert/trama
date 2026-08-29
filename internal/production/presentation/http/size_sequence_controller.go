@@ -40,7 +40,7 @@ func (controller *SizeSequenceController) replace(w nethttp.ResponseWriter, r *n
 
 	result, err := controller.replaceSizeSequence.Execute(r.Context(), command.ReplaceSizeSequenceCommand{Items: items})
 	if err != nil {
-		respondApplicationError(w, err)
+		respondSizeSequenceError(w, err)
 		return
 	}
 	respondJSON(w, nethttp.StatusOK, dto.FromResult(result))
@@ -49,7 +49,7 @@ func (controller *SizeSequenceController) replace(w nethttp.ResponseWriter, r *n
 func (controller *SizeSequenceController) get(w nethttp.ResponseWriter, r *nethttp.Request) {
 	result, err := controller.getSizeSequence.Execute(r.Context())
 	if err != nil {
-		respondApplicationError(w, err)
+		respondSizeSequenceError(w, err)
 		return
 	}
 	respondJSON(w, nethttp.StatusOK, dto.FromResult(result))
@@ -66,7 +66,7 @@ func decodeJSON(r *nethttp.Request, destination any) error {
 	return nil
 }
 
-func respondApplicationError(w nethttp.ResponseWriter, err error) {
+func respondSizeSequenceError(w nethttp.ResponseWriter, err error) {
 	switch {
 	case application.IsInvalidSizeSequence(err):
 		respondError(w, nethttp.StatusUnprocessableEntity, "invalid_size_sequence", "invalid size sequence")

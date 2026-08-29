@@ -13,16 +13,27 @@ import (
 )
 
 type Module struct {
-	controller *presentationhttp.SizeSequenceController
+	sizeSequenceController *presentationhttp.SizeSequenceController
+	entryController        *presentationhttp.EntryController
 }
 
 func NewModule(pool *pgxpool.Pool) Module {
-	repository := postgres.NewSizeSequenceRepository(pool)
-	replaceSizeSequence := command.NewReplaceSizeSequence(repository, system.NewUTCClock())
-	getSizeSequence := query.NewGetSizeSequence(repository)
-	return Module{controller: presentationhttp.NewSizeSequenceController(replaceSizeSequence, getSizeSequence)}
+	sizeSequences := postgres.NewSizeSequenceRepository(pool)
+	entries := postgres.NewEntryRepository(pool)
+	clock := system.NewUTCClock()
+	ids := system.NewRandomIDGenerator()
+
+	replaceSizeSequence := command.NewReplaceSizeSequence(sizeSequences, clock)
+	getSizeSequence := query.NewGetSizeSequence(sizeSequences)
+	createEntry := command.NewCreateEntry(sizeSequences, entries, ids, clock)
+
+	return Module{
+		sizeSequenceController: presentationhttp.NewSizeSequenceController(replaceSizeSequence, getSizeSequence),
+		entryController:        presentationhttp.NewEntryController(createEntry),
+	}
 }
 
 func (module Module) RegisterRoutes(mux *http.ServeMux) {
-	module.controller.RegisterRoutes(mux)
+	module.sizeSequenceController.RegisterRoutes(mux)
+	module.entryController.RegisterRoutes(mux)
 }
