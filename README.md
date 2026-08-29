@@ -50,13 +50,28 @@ Exemplo:
 ```json
 {
   "items": [
-    {"name": "P", "position": 10},
-    {"name": "M", "position": 20}
+    {"name": "2", "position": 10},
+    {"name": "4", "position": 20},
+    {"name": "6", "position": 30}
   ]
 }
 ```
 
 O `PUT` é idempotente: repetir o mesmo estado lógico não duplica itens nem altera `updatedAt`.
+
+## Production — recebimento
+
+`POST /v1/entries` registra uma entrada pelas cores presentes. Quantidade de peças não é obrigatória.
+
+```json
+{
+  "colors": ["Preto", "Azul", "Bege"]
+}
+```
+
+Cada cor cria exatamente um `ColorBatch`, preservando a ordem do request. O lote começa em `WAITING` e recebe `SizeRun` em `PENDING` para cada item da sequência vigente. Os tamanhos são copiados para o lote como snapshot; alterar a configuração depois não modifica entradas já recebidas.
+
+A criação da entrada, dos lotes e dos size runs ocorre em uma única transação PostgreSQL. A API responde `201 Created` e `Location: /v1/entries/{id}`.
 
 ## Erros HTTP
 
