@@ -10,6 +10,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/Luca5Eckert/trama/internal/platform/database"
 	"github.com/Luca5Eckert/trama/internal/users/domain"
 	"github.com/Luca5Eckert/trama/internal/users/domain/model"
 	userpostgres "github.com/Luca5Eckert/trama/internal/users/infrastructure/adapter/postgres"
@@ -30,6 +31,10 @@ func TestUserRepositoryIntegration(t *testing.T) {
 	}
 	defer pool.Close()
 
+	if err := database.Migrate(ctx, pool); err != nil {
+		t.Fatalf("migrate database: %v", err)
+	}
+
 	id := fmt.Sprintf("repository-test-%d", time.Now().UnixNano())
 	defer func() {
 		_, _ = pool.Exec(context.Background(), `DELETE FROM users WHERE id = $1`, id)
@@ -46,7 +51,7 @@ func TestUserRepositoryIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get by id: %v", err)
 	}
-	if found != user {
+	if found.ID != user.ID || found.Name != user.Name || !found.CreatedAt.Equal(user.CreatedAt) {
 		t.Fatalf("got %#v, want %#v", found, user)
 	}
 
