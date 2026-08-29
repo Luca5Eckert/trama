@@ -25,7 +25,7 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
 	}
 	defer connection.Release()
 
-	migrator, err := migrate.NewMigrator(ctx, connection.Conn(), "public.schema_version")
+	migrator, err := migrate.NewMigrator(ctx, connection.Conn(), "public.trama_schema_version")
 	if err != nil {
 		return fmt.Errorf("initialize migrator: %w", err)
 	}
