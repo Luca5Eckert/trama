@@ -73,6 +73,25 @@ Cada cor cria exatamente um `ColorBatch`, preservando a ordem do request. O lote
 
 A criação da entrada, dos lotes e dos size runs ocorre em uma única transação PostgreSQL. A API responde `201 Created` e `Location: /v1/entries/{id}`.
 
+## Production — consultas e fila
+
+As leituras operacionais são expostas sem carregar o agregado de escrita para montar listagens:
+
+- `GET /v1/entries/{id}` detalha uma entrada e seus lotes;
+- `GET /v1/entries?limit=50&offset=0` lista entradas em `receivedAt DESC`;
+- `GET /v1/color-batches/{id}` detalha um lote e seus size runs;
+- `GET /v1/color-batches?status=WAITING&entryId=<id>&limit=50&offset=0` consulta a fila.
+
+`limit` usa 50 por padrão, aceita de 1 a 100, e `offset` começa em 0. Listas vazias retornam `200` com `items: []`; recursos individuais inexistentes retornam `404`.
+
+A ordem canônica da fila é `created_at ASC, entry_id ASC, position ASC, id ASC`. Isso é somente uma ordenação técnica determinística; ainda não existe regra global de prioridade entre cores de entradas diferentes.
+
+`currentSize` e `nextSize` são projeções dos `SizeRun` persistidos e não colunas duplicadas:
+
+- `WAITING`: `currentSize = null` e `nextSize = primeiro PENDING`;
+- `IN_PRODUCTION`: `currentSize = primeiro IN_PROGRESS` e `nextSize = primeiro PENDING`;
+- `COMPLETED`: ambos `null`.
+
 ## Erros HTTP
 
 As bordas HTTP usam envelope estável:
