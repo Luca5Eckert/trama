@@ -1,4 +1,17 @@
-# trama
+# Trama — software orientado ao processo real de um ateliê
+
+Trama é um backend em **Go e PostgreSQL** para acompanhar recebimentos e produção de um ateliê. O objetivo não é encaixar a operação em um CRUD genérico de estoque: o trabalho é organizado por **cor**, pois trocar de cor implica preparar outro fio. Uma entrada pode conter várias cores; cada cor origina um lote, e os tamanhos são executados em sequência dentro desse lote.
+
+## Problema, decisões e custos
+
+- **Lote por cor, não por quantidade:** registrar as cores recebidas sem obrigar a contagem de peças no recebimento. A quantidade pode ser informada em uma etapa posterior, quando fizer sentido para a operação.
+- **Snapshot da sequência de tamanhos:** cada lote preserva a ordem vigente quando foi criado. Alterar a configuração depois não reescreve a história de lotes existentes; o custo é duplicar a sequência em cada lote.
+- **Transação local:** entrada, lotes e suas etapas são criados atomicamente em PostgreSQL, evitando recebimentos parcialmente persistidos.
+- **Monólito modular:** limites explícitos de domínio e composição em `internal/<modulo>/module.go`, sem distribuir uma operação que hoje cabe em uma transação. Testes arquiteturais protegem a direção das dependências.
+
+**Estado:** API/backend em evolução. Há criação de entradas, lotes por cor, configuração da sequência e consultas de fila; não há alegação de operação empresarial em produção.
+
+## Implementação
 
 Base de API Go organizada como monólito modular. Cada módulo concentra seu fluxo e expõe somente a composição em `internal/<modulo>/module.go`.
 
